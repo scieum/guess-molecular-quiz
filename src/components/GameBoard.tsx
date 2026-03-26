@@ -176,7 +176,7 @@ export default function GameBoard({
                 </div>
                 <ul className="space-y-0.5">
                   {stageHints.map((hint, hintIdx) => (
-                    <li key={hintIdx} className={`text-xs font-light ${colors.text} flex items-start gap-1.5`}>
+                    <li key={hintIdx} className={`text-sm font-light ${colors.text} flex items-start gap-1.5`}>
                       <span className="shrink-0">💡</span>
                       <span>{hint}</span>
                     </li>
