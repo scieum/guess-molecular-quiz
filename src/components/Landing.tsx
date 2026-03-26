@@ -2,9 +2,10 @@
 
 interface LandingProps {
   onStart: () => void;
+  onShowRanking: () => void;
 }
 
-export default function Landing({ onStart }: LandingProps) {
+export default function Landing({ onStart, onShowRanking }: LandingProps) {
   return (
     <div className="min-h-dvh flex flex-col py-6 px-4">
       <div className="max-w-lg w-full mx-auto flex-1 flex flex-col justify-center animate-slide-up">
@@ -43,12 +44,19 @@ export default function Landing({ onStart }: LandingProps) {
           </ul>
         </div>
 
-        {/* Start Button */}
+        {/* Buttons */}
         <button
           onClick={onStart}
           className="w-full py-4 rounded-2xl bg-[#6366F1] text-white font-medium text-lg transition-all hover:bg-[#4F46E5] hover:shadow-lg active:scale-[0.98]"
         >
           게임 시작
+        </button>
+
+        <button
+          onClick={onShowRanking}
+          className="w-full py-3 mt-3 rounded-2xl border border-[#e5e5e5] text-sm text-[#737373] font-light transition-all hover:bg-[#f9f9f9] hover:border-[#d4d4d4] active:scale-[0.99]"
+        >
+          랭킹 보기
         </button>
 
         {/* Hint */}

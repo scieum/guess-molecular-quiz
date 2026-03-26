@@ -5,6 +5,7 @@ import { Molecule, molecules, shuffle } from '@/lib/molecules';
 import Landing from '@/components/Landing';
 import GameBoard from '@/components/GameBoard';
 import GameOver from '@/components/GameOver';
+import RankingBoard from '@/components/RankingBoard';
 
 interface AnswerRecord {
   molecule: Molecule;
@@ -12,7 +13,7 @@ interface AnswerRecord {
   stage: number;
 }
 
-type Phase = 'landing' | 'playing' | 'gameover';
+type Phase = 'landing' | 'playing' | 'gameover' | 'ranking';
 
 export default function Home() {
   const [phase, setPhase] = useState<Phase>('landing');
@@ -21,6 +22,7 @@ export default function Home() {
   const [totalScore, setTotalScore] = useState(0);
   const [answers, setAnswers] = useState<AnswerRecord[]>([]);
   const [failedMolecule, setFailedMolecule] = useState<Molecule | null>(null);
+  const [isPerfectClear, setIsPerfectClear] = useState(false);
 
   const currentMolecule = useMemo(() => queue[currentIdx] ?? null, [queue, currentIdx]);
 
@@ -31,6 +33,7 @@ export default function Home() {
     setTotalScore(0);
     setAnswers([]);
     setFailedMolecule(null);
+    setIsPerfectClear(false);
     setPhase('playing');
   }, []);
 
@@ -57,33 +60,19 @@ export default function Home() {
     setPhase('landing');
   }, []);
 
-  // If we've exhausted all molecules, game over (win!)
+  // If we've exhausted all molecules — perfect clear
   if (phase === 'playing' && currentIdx >= queue.length && queue.length > 0) {
-    return (
-      <div className="min-h-dvh flex flex-col py-6 px-4">
-        <div className="max-w-lg w-full mx-auto flex-1 flex flex-col justify-center animate-slide-up text-center">
-          <div className="text-5xl mb-4">🏆</div>
-          <h2 className="text-2xl font-bold text-[#171717] mb-2">완벽한 클리어!</h2>
-          <p className="text-5xl font-bold text-[#6366F1] my-3">
-            {totalScore}<span className="text-xl font-medium text-[#a3a3a3] ml-1">점</span>
-          </p>
-          <p className="text-sm text-[#525252] font-light mb-6">
-            모든 분자를 맞추셨습니다!
-          </p>
-          <button
-            onClick={handleRestart}
-            className="w-full py-4 rounded-2xl bg-[#6366F1] text-white font-medium text-lg transition-all hover:bg-[#4F46E5] hover:shadow-lg active:scale-[0.98]"
-          >
-            다시 도전하기
-          </button>
-        </div>
-      </div>
-    );
+    if (!isPerfectClear) {
+      setIsPerfectClear(true);
+      setPhase('gameover');
+    }
   }
 
   return (
     <div className="min-h-dvh bg-white">
-      {phase === 'landing' && <Landing onStart={handleStart} />}
+      {phase === 'landing' && (
+        <Landing onStart={handleStart} onShowRanking={() => setPhase('ranking')} />
+      )}
 
       {phase === 'playing' && currentMolecule && (
         <GameBoard
@@ -96,13 +85,18 @@ export default function Home() {
         />
       )}
 
-      {phase === 'gameover' && failedMolecule && (
+      {phase === 'gameover' && (
         <GameOver
           totalScore={totalScore}
           answers={answers}
           failedMolecule={failedMolecule}
+          isPerfectClear={isPerfectClear}
           onRestart={handleRestart}
         />
+      )}
+
+      {phase === 'ranking' && (
+        <RankingBoard onRestart={handleRestart} />
       )}
     </div>
   );
