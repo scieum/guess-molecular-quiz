@@ -18,6 +18,23 @@ interface RankingBoardProps {
   onRestart: () => void;
 }
 
+const MEDAL_EMOJIS = ['🥇', '🥈', '🥉'];
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return '방금 전';
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 1) return '오늘';
+  if (diffDay === 1) return '어제';
+  return `${diffDay}일 전`;
+}
+
 export default function RankingBoard({ highlightId, onRestart }: RankingBoardProps) {
   const [rankings, setRankings] = useState<RankingEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,76 +51,91 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
   return (
     <div className="min-h-dvh flex flex-col py-6 px-4">
       <div className="max-w-lg w-full mx-auto flex-1 flex flex-col animate-slide-up">
-        <div className="text-center mb-5">
-          <div className="text-4xl mb-2">🏅</div>
-          <h2 className="text-xl font-semibold text-[#171717]">랭킹 보드</h2>
+        {/* Header */}
+        <div className="text-center mb-1 pt-2">
+          <h2 className="text-2xl font-bold text-[#171717]">랭킹 보드</h2>
+          <p className="text-sm text-[#a3a3a3] font-light mt-1">상위 50명의 기록</p>
         </div>
 
-        <div className="flex-1 overflow-y-auto rounded-2xl bg-[#f9f9f9] p-4 mb-4">
+        {/* Ranking list */}
+        <div className="flex-1 overflow-y-auto py-4 space-y-2.5">
           {loading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-14 bg-white rounded-lg animate-pulse" />
-              ))}
-            </div>
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-20 bg-[#f5f5f5] rounded-2xl animate-pulse" />
+            ))
           ) : rankings.length === 0 ? (
-            <p className="text-sm text-[#a3a3a3] text-center py-8">아직 등록된 기록이 없습니다</p>
+            <div className="text-center py-16">
+              <div className="text-4xl mb-3">🏅</div>
+              <p className="text-sm text-[#a3a3a3]">아직 등록된 기록이 없습니다</p>
+            </div>
           ) : (
-            <div className="space-y-1.5">
-              {/* Header */}
-              <div className="grid grid-cols-[2rem_1fr_1fr_3rem_2.5rem_2.5rem] gap-1 px-2 py-1 text-[10px] text-[#a3a3a3] font-medium">
-                <span>#</span>
-                <span>닉네임</span>
-                <span>소속교</span>
-                <span className="text-right">점수</span>
-                <span className="text-right">R</span>
-                <span className="text-right">10p</span>
-              </div>
+            rankings.map((entry, idx) => {
+              const isHighlighted = entry.id === highlightId;
+              const medal = MEDAL_EMOJIS[idx];
+              const isTop3 = idx < 3;
 
-              {rankings.map((entry, idx) => {
-                const isHighlighted = entry.id === highlightId;
-                const rankEmoji = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null;
+              return (
+                <div
+                  key={entry.id}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${
+                    isHighlighted
+                      ? 'bg-[#EEF2FF] border-2 border-[#6366F1]/40 shadow-sm'
+                      : isTop3
+                      ? 'bg-white border border-[#e5e5e5] shadow-sm'
+                      : 'bg-white border border-[#f0f0f0]'
+                  }`}
+                >
+                  {/* Rank */}
+                  <div className="shrink-0 w-10 h-10 flex items-center justify-center">
+                    {medal ? (
+                      <span className="text-2xl">{medal}</span>
+                    ) : (
+                      <span className="text-sm font-bold text-[#a3a3a3]">{idx + 1}</span>
+                    )}
+                  </div>
 
-                return (
-                  <div
-                    key={entry.id}
-                    className={`grid grid-cols-[2rem_1fr_1fr_3rem_2.5rem_2.5rem] gap-1 items-center px-2 py-2.5 rounded-lg ${
-                      isHighlighted
-                        ? 'bg-[#EEF2FF] border border-[#6366F1]/30 ring-1 ring-[#6366F1]/20'
-                        : 'bg-white'
-                    }`}
-                  >
-                    <span className="text-xs font-bold text-[#a3a3a3]">
-                      {rankEmoji ?? idx + 1}
-                    </span>
-                    <span className="text-xs font-medium text-[#171717] truncate">
-                      {entry.nickname}
-                    </span>
-                    <span className="text-[10px] text-[#737373] truncate">
-                      {entry.school_name}
-                    </span>
-                    <span className="text-xs font-bold text-[#6366F1] text-right">
-                      {entry.total_score}
-                    </span>
-                    <span className="text-[10px] text-[#737373] text-right">
-                      {entry.round_reached}
-                    </span>
-                    <span className="text-[10px] text-red-500 font-medium text-right">
-                      {entry.perfect_count}
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[15px] font-semibold text-[#171717] truncate">
+                        {entry.nickname}
+                      </span>
+                      {entry.perfect_count > 0 && (
+                        <span className="shrink-0 text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">
+                          10p x{entry.perfect_count}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-xs text-[#a3a3a3] truncate">{entry.school_name}</span>
+                      <span className="text-[10px] text-[#d4d4d4]">·</span>
+                      <span className="text-xs text-[#a3a3a3]">R{entry.round_reached}</span>
+                      <span className="text-[10px] text-[#d4d4d4]">·</span>
+                      <span className="text-xs text-[#a3a3a3] shrink-0">{formatDate(entry.created_at)}</span>
+                    </div>
+                  </div>
+
+                  {/* Score */}
+                  <div className="shrink-0 text-right">
+                    <span className={`text-xl font-bold ${isHighlighted ? 'text-[#6366F1]' : 'text-[#6366F1]'}`}>
+                      {entry.total_score.toLocaleString()}
                     </span>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })
           )}
         </div>
 
-        <button
-          onClick={onRestart}
-          className="w-full py-4 rounded-2xl bg-[#6366F1] text-white font-medium text-lg transition-all hover:bg-[#4F46E5] hover:shadow-lg active:scale-[0.98]"
-        >
-          다시 도전하기
-        </button>
+        {/* Bottom button */}
+        <div className="pt-2 pb-2">
+          <button
+            onClick={onRestart}
+            className="w-full py-4 rounded-2xl bg-[#6366F1] text-white font-medium text-lg transition-all hover:bg-[#4F46E5] hover:shadow-lg active:scale-[0.98]"
+          >
+            닫기
+          </button>
+        </div>
       </div>
     </div>
   );
