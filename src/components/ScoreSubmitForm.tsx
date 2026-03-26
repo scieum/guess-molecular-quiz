@@ -94,7 +94,7 @@ export default function ScoreSubmitForm({
           onChange={(e) => setNickname(e.target.value)}
           placeholder="닉네임 입력 (최대 20자)"
           maxLength={20}
-          className="w-full px-3 py-2.5 rounded-xl border border-[#e5e5e5] text-sm font-light placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1]"
+          className="w-full px-3 py-2.5 rounded-xl border border-[#e5e5e5] text-base font-light placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1]"
         />
       </div>
 

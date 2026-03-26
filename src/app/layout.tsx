@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Guess the Molecule",
   description: "단계별 힌트를 통해 분자를 추론하는 화학 퀴즈 게임",
   icons: { icon: "/favicon.svg" },
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
 };
 
 export default function RootLayout({

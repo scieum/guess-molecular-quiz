@@ -112,7 +112,7 @@ export default function SchoolSearch({ onSelect }: SchoolSearchProps) {
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder={regionCode ? '학교 이름 검색 (2글자 이상)' : '먼저 지역을 선택하세요'}
           disabled={!regionCode}
-          className="w-full px-3 py-2.5 rounded-xl border border-[#e5e5e5] text-sm font-light placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1] disabled:opacity-50"
+          className="w-full px-3 py-2.5 rounded-xl border border-[#e5e5e5] text-base font-light placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1] disabled:opacity-50"
           autoComplete="off"
         />
         {loading && (

@@ -256,7 +256,7 @@ export default function GameBoard({
               }}
               placeholder="분자식 또는 이름 (예: H2O, 물)"
               disabled={frozen}
-              className="flex-1 px-4 py-3 rounded-xl border border-[#e5e5e5] text-sm font-light placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1] disabled:opacity-50"
+              className="flex-1 px-4 py-3 rounded-xl border border-[#e5e5e5] text-base font-light placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1] disabled:opacity-50"
               autoComplete="off"
             />
             <button
