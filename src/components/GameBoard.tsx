@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Molecule, STAGE_POINTS, TIME_LIMIT, checkAnswer } from '@/lib/molecules';
 
 interface GameBoardProps {
@@ -39,6 +39,34 @@ export default function GameBoard({
   const onCorrectRef = useRef(onCorrect);
   const composingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hintEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [viewHeight, setViewHeight] = useState<number | null>(null);
+
+  // Track visual viewport to handle mobile keyboard
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const onResize = () => {
+      setViewHeight(vv.height);
+    };
+
+    vv.addEventListener('resize', onResize);
+    onResize();
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
+
+  // Auto-scroll to latest hint when stage changes or keyboard opens
+  const scrollToHint = useCallback(() => {
+    requestAnimationFrame(() => {
+      hintEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+  }, []);
+
+  useEffect(() => {
+    scrollToHint();
+  }, [currentStage, viewHeight, scrollToHint]);
 
   // Keep callback refs fresh
   onFailRef.current = onFail;
@@ -114,9 +142,13 @@ export default function GameBoard({
     timeLeft > 6 ? 'bg-green-500' : timeLeft > 3 ? 'bg-yellow-500' : 'bg-red-500';
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div
+      ref={containerRef}
+      className="flex flex-col"
+      style={{ height: viewHeight ? `${viewHeight}px` : '100dvh' }}
+    >
       {/* Top bar */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-[#e5e5e5]">
+      <div className="shrink-0 bg-white/95 backdrop-blur-sm border-b border-[#e5e5e5]">
         <div className="max-w-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
@@ -152,7 +184,7 @@ export default function GameBoard({
       </div>
 
       {/* Hint cards */}
-      <div className="flex-1 overflow-y-auto px-4 py-2">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-2">
         <div className="max-w-2xl mx-auto space-y-1.5">
           {molecule.hints.map((stageHints, stageIdx) => {
             if (stageIdx > currentStage) return null;
@@ -185,6 +217,7 @@ export default function GameBoard({
               </div>
             );
           })}
+          <div ref={hintEndRef} />
         </div>
       </div>
 
@@ -202,7 +235,7 @@ export default function GameBoard({
       )}
 
       {/* Bottom input */}
-      <div className="sticky bottom-0 z-20 bg-white border-t border-[#e5e5e5]">
+      <div className="shrink-0 bg-white border-t border-[#e5e5e5]">
         <div className="max-w-2xl mx-auto px-4 py-3">
           {feedback === 'wrong' && (
             <p className="text-xs text-red-500 font-medium mb-2 animate-fade-in text-center">
@@ -215,6 +248,7 @@ export default function GameBoard({
               type="text"
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
+              onFocus={scrollToHint}
               onCompositionStart={() => { composingRef.current = true; }}
               onCompositionEnd={(e) => {
                 composingRef.current = false;
