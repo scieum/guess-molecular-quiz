@@ -82,6 +82,7 @@ export default function Home() {
           totalScore={totalScore}
           onCorrect={handleCorrect}
           onFail={handleFail}
+          onQuit={handleRestart}
         />
       )}
 

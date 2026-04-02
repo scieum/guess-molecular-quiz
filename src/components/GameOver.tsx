@@ -39,20 +39,20 @@ export default function GameOver({
 
   return (
     <div className="min-h-dvh flex flex-col py-6 px-4 bg-[#f8fafc]">
-      <div className="max-w-lg w-full mx-auto flex-1 flex flex-col justify-center animate-slide-up">
+      <div className="max-w-lg w-full mx-auto flex-1 flex flex-col animate-slide-up">
         {/* Result Header */}
-        <div className="text-center mb-5">
-          <div className="text-6xl mb-3">
+        <div className="text-center mb-4">
+          <div className="text-6xl mb-2">
             {isPerfectClear ? '\u{1F3C6}' : totalScore >= 30 ? '\u{1F3C6}' : totalScore >= 15 ? '\u{1F9EA}' : '\u{1F52C}'}
           </div>
           <h2 className="text-xl font-bold text-[#171717] mb-1">
             {isPerfectClear ? '완벽한 클리어!' : '게임 종료!'}
           </h2>
-          <div className="my-4">
-            <span className="text-6xl font-bold bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
+          <div className="my-3">
+            <span className="text-5xl font-bold bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
               {totalScore}
             </span>
-            <span className="text-xl font-medium text-[#a3a3a3] ml-1">점</span>
+            <span className="text-lg font-medium text-[#a3a3a3] ml-1">점</span>
           </div>
           <p className="text-sm text-[#525252] font-light">
             {isPerfectClear ? '모든 분자를 맞추셨습니다!' : `${correctCount}개의 분자를 맞추셨습니다`}
@@ -61,18 +61,34 @@ export default function GameOver({
 
         {/* Failed molecule reveal */}
         {failedMolecule && (
-          <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-4 mb-4 text-center shadow-sm">
+          <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-3 mb-3 text-center shadow-sm">
             <p className="text-[10px] text-red-400 font-semibold uppercase tracking-wider mb-1">마지막 정답</p>
             <p className="text-2xl font-bold text-red-600">{failedMolecule.formula}</p>
             <p className="text-sm text-red-500">{failedMolecule.nameKorean} ({failedMolecule.nameEnglish})</p>
           </div>
         )}
 
-        {/* Answer history */}
-        {answers.length > 0 && (
-          <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-white/60 shadow-sm p-4 mb-4">
-            <h3 className="text-xs font-semibold text-[#a3a3a3] mb-3 uppercase tracking-wider">맞춘 분자들</h3>
-            <div className="space-y-1.5">
+        {/* Score submit form */}
+        <div className="mb-4">
+          <ScoreSubmitForm
+            totalScore={totalScore}
+            roundReached={roundReached}
+            perfectCount={perfectCount}
+            onSubmitted={(id) => {
+              setSubmittedId(id);
+              setPhase('ranking');
+            }}
+            onSkip={() => setPhase('ranking')}
+          />
+        </div>
+
+        {/* Answer history — collapsible */}
+        {answers.filter((a) => a.points > 0).length > 0 && (
+          <details className="rounded-2xl bg-white/80 backdrop-blur-sm border border-white/60 shadow-sm p-4 mb-4">
+            <summary className="text-xs font-semibold text-[#a3a3a3] cursor-pointer uppercase tracking-wider">
+              맞춘 분자들 보기 ({answers.filter((a) => a.points > 0).length}개)
+            </summary>
+            <div className="space-y-1.5 mt-3">
               {answers
                 .filter((a) => a.points > 0)
                 .map((a, idx) => (
@@ -92,22 +108,8 @@ export default function GameOver({
                   </div>
                 ))}
             </div>
-          </div>
+          </details>
         )}
-
-        {/* Score submit form */}
-        <div className="mb-4">
-          <ScoreSubmitForm
-            totalScore={totalScore}
-            roundReached={roundReached}
-            perfectCount={perfectCount}
-            onSubmitted={(id) => {
-              setSubmittedId(id);
-              setPhase('ranking');
-            }}
-            onSkip={() => setPhase('ranking')}
-          />
-        </div>
       </div>
     </div>
   );

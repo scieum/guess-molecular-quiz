@@ -24,15 +24,12 @@ const MEDAL_BG = ['bg-amber-50 border-amber-200', 'bg-gray-50 border-gray-200', 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return '방금 전';
-  if (diffMin < 60) return `${diffMin}분 전`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}시간 전`;
-  const diffDay = Math.floor(diffHr / 24);
-  if (diffDay < 1) return '오늘';
-  if (diffDay === 1) return '어제';
+  const isToday = date.toDateString() === now.toDateString();
+  if (isToday) return '오늘';
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return '어제';
+  const diffDay = Math.floor((now.getTime() - date.getTime()) / 86400000);
   return `${diffDay}일 전`;
 }
 
@@ -41,7 +38,7 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/rankings?limit=50')
+    fetch('/api/rankings?limit=20')
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) setRankings(data);
@@ -55,7 +52,7 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
         {/* Header */}
         <div className="text-center mb-4 pt-2">
           <h2 className="text-2xl font-bold text-[#171717]">랭킹 보드</h2>
-          <p className="text-sm text-[#a3a3a3] font-light mt-1">상위 50명의 기록</p>
+          <p className="text-sm text-[#a3a3a3] font-light mt-1">상위 20명의 기록</p>
         </div>
 
         {/* Ranking list */}
@@ -87,7 +84,7 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
                   }`}
                 >
                   {/* Rank */}
-                  <div className="shrink-0 w-10 h-10 flex items-center justify-center">
+                  <div className="shrink-0 w-10 flex flex-col items-center">
                     {medal ? (
                       <span className="text-2xl">{medal}</span>
                     ) : (
@@ -97,29 +94,21 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[15px] font-semibold text-[#171717] truncate">
-                        {entry.nickname}
-                      </span>
-                      {entry.perfect_count > 0 && (
-                        <span className="shrink-0 text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full border border-red-100">
-                          10p x{entry.perfect_count}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-xs text-[#a3a3a3] truncate">{entry.school_name}</span>
-                      <span className="text-[10px] text-[#d4d4d4]">&middot;</span>
-                      <span className="text-xs text-[#a3a3a3]">R{entry.round_reached}</span>
-                      <span className="text-[10px] text-[#d4d4d4]">&middot;</span>
-                      <span className="text-xs text-[#a3a3a3] shrink-0">{formatDate(entry.created_at)}</span>
-                    </div>
+                    <span className="text-[15px] font-semibold text-[#171717] truncate block">
+                      {entry.nickname}
+                    </span>
+                    <span className="text-xs text-[#a3a3a3] truncate block mt-0.5">
+                      {entry.school_name}
+                    </span>
                   </div>
 
-                  {/* Score */}
+                  {/* Score + Date */}
                   <div className="shrink-0 text-right">
-                    <span className="text-xl font-bold text-[#6366F1]">
+                    <span className="text-xl font-bold text-[#6366F1] block">
                       {entry.total_score.toLocaleString()}
+                    </span>
+                    <span className="text-[11px] text-[#a3a3a3] block mt-0.5">
+                      {formatDate(entry.created_at)}
                     </span>
                   </div>
                 </div>

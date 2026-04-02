@@ -9,13 +9,14 @@ interface GameBoardProps {
   totalScore: number;
   onCorrect: (points: number, stage: number) => void;
   onFail: () => void;
+  onQuit: () => void;
 }
 
 const STAGE_COLORS = [
-  { bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-gradient-to-r from-red-500 to-red-600', text: 'text-red-700', ring: 'ring-red-300' },
-  { bg: 'bg-orange-50', border: 'border-orange-200', badge: 'bg-gradient-to-r from-orange-500 to-orange-600', text: 'text-orange-700', ring: 'ring-orange-300' },
-  { bg: 'bg-yellow-50', border: 'border-yellow-200', badge: 'bg-gradient-to-r from-yellow-500 to-yellow-600', text: 'text-yellow-700', ring: 'ring-yellow-300' },
-  { bg: 'bg-green-50', border: 'border-green-200', badge: 'bg-gradient-to-r from-green-500 to-green-600', text: 'text-green-700', ring: 'ring-green-300' },
+  { bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-gradient-to-r from-red-500 to-red-600', text: 'text-red-700' },
+  { bg: 'bg-orange-50', border: 'border-orange-200', badge: 'bg-gradient-to-r from-orange-500 to-orange-600', text: 'text-orange-700' },
+  { bg: 'bg-yellow-50', border: 'border-yellow-200', badge: 'bg-gradient-to-r from-yellow-500 to-yellow-600', text: 'text-yellow-700' },
+  { bg: 'bg-green-50', border: 'border-green-200', badge: 'bg-gradient-to-r from-green-500 to-green-600', text: 'text-green-700' },
 ];
 
 const STAGE_DOTS = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400'];
@@ -26,6 +27,7 @@ export default function GameBoard({
   totalScore,
   onCorrect,
   onFail,
+  onQuit,
 }: GameBoardProps) {
   const [currentStage, setCurrentStage] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
@@ -41,9 +43,51 @@ export default function GameBoard({
   const composingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   onFailRef.current = onFail;
   onCorrectRef.current = onCorrect;
+
+  // Track visual viewport height for mobile keyboard (especially iOS)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const vv = window.visualViewport;
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+
+    const updateLayout = () => {
+      if (vv) {
+        container.style.height = `${vv.height}px`;
+        container.style.top = `${vv.offsetTop}px`;
+      } else {
+        container.style.height = `${window.innerHeight}px`;
+        container.style.top = '0px';
+      }
+    };
+
+    updateLayout();
+
+    if (vv) {
+      vv.addEventListener('resize', updateLayout);
+      vv.addEventListener('scroll', updateLayout);
+    }
+    window.addEventListener('resize', updateLayout);
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      if (vv) {
+        vv.removeEventListener('resize', updateLayout);
+        vv.removeEventListener('scroll', updateLayout);
+      }
+      window.removeEventListener('resize', updateLayout);
+    };
+  }, []);
 
   useEffect(() => {
     stageRef.current = 0;
@@ -108,11 +152,11 @@ export default function GameBoard({
     }
   };
 
-  const scrollInputIntoView = () => {
+  useEffect(() => {
     setTimeout(() => {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, 300);
-  };
+    }, 100);
+  }, [currentStage]);
 
   const timerPercent = (timeLeft / TIME_LIMIT) * 100;
   const timerColor =
@@ -122,12 +166,19 @@ export default function GameBoard({
   const activeHints = molecule.hints[currentStage];
 
   return (
-    <div className="min-h-dvh bg-[#f8fafc]">
+    <div ref={containerRef} className="fixed inset-x-0 top-0 flex flex-col overflow-hidden bg-[#f8fafc]" style={{ height: '100dvh' }}>
       {/* Top bar */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-[#e5e7eb] shadow-sm">
+      <div className="shrink-0 z-20 bg-white/90 backdrop-blur-md border-b border-[#e5e7eb] shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
+              <button
+                onClick={onQuit}
+                className="text-[#a3a3a3] hover:text-[#171717] transition-colors"
+                aria-label="나가기"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
               <span className="text-sm font-bold text-[#171717] bg-[#f1f5f9] px-2.5 py-0.5 rounded-lg">
                 #{moleculeIndex + 1}
               </span>
@@ -172,45 +223,40 @@ export default function GameBoard({
         </div>
       </div>
 
-      {/* Previous hint cards */}
-      {currentStage > 0 && (
-        <div className="px-4 py-2">
-          <div className="max-w-2xl mx-auto space-y-1.5">
-            {molecule.hints.map((stageHints, stageIdx) => {
-              if (stageIdx >= currentStage) return null;
-              const colors = STAGE_COLORS[stageIdx];
+      {/* Hints area — scrollable */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-2">
+        <div className="max-w-2xl mx-auto space-y-1.5">
+          {/* Previous hint cards */}
+          {molecule.hints.map((stageHints, stageIdx) => {
+            if (stageIdx >= currentStage) return null;
+            const colors = STAGE_COLORS[stageIdx];
 
-              return (
-                <div
-                  key={stageIdx}
-                  className={`rounded-xl border px-3 py-2 opacity-50 ${colors.bg} ${colors.border}`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[10px] font-bold text-white px-2 py-0.5 rounded-full ${colors.badge}`}>
-                      {stageIdx + 1}단계
-                    </span>
-                  </div>
-                  <ul className="space-y-0.5">
-                    {stageHints.map((hint, hintIdx) => (
-                      <li key={hintIdx} className={`text-sm font-light ${colors.text} flex items-start gap-1.5`}>
-                        <span className="shrink-0 text-xs mt-0.5">&#10148;</span>
-                        <span>{hint}</span>
-                      </li>
-                    ))}
-                  </ul>
+            return (
+              <div
+                key={stageIdx}
+                className={`rounded-xl border px-3 py-2 opacity-50 ${colors.bg} ${colors.border}`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-[10px] font-bold text-white px-2 py-0.5 rounded-full ${colors.badge}`}>
+                    {stageIdx + 1}단계
+                  </span>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+                <ul className="space-y-0.5">
+                  {stageHints.map((hint, hintIdx) => (
+                    <li key={hintIdx} className={`text-sm font-light ${colors.text} flex items-start gap-1.5`}>
+                      <span className="shrink-0 text-xs mt-0.5">&#10148;</span>
+                      <span>{hint}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
 
-      {/* Current hint + Input */}
-      <div ref={bottomRef} className="px-4 pb-6 pt-2">
-        <div className="max-w-2xl mx-auto">
           {/* Active hint card */}
           <div
-            className={`rounded-xl border-2 px-4 py-3 mb-3 animate-slide-up shadow-sm ${activeColors.bg} ${activeColors.border}`}
+            ref={bottomRef}
+            className={`rounded-xl border-2 px-4 py-3 animate-slide-up shadow-sm ${activeColors.bg} ${activeColors.border}`}
           >
             <div className="flex items-center gap-2 mb-2">
               <span className={`text-[10px] font-bold text-white px-2 py-0.5 rounded-full ${activeColors.badge}`}>
@@ -229,8 +275,12 @@ export default function GameBoard({
               ))}
             </ul>
           </div>
+        </div>
+      </div>
 
-          {/* Input area */}
+      {/* Input area — fixed at bottom */}
+      <div className="shrink-0 z-20 bg-white/90 backdrop-blur-md border-t border-[#e5e7eb] px-4 py-3 shadow-sm">
+        <div className="max-w-2xl mx-auto">
           {feedback === 'wrong' && (
             <p className="text-xs text-red-500 font-medium mb-2 animate-fade-in text-center">
               틀렸습니다! 다시 시도해보세요.
@@ -242,7 +292,6 @@ export default function GameBoard({
               type="text"
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              onFocus={scrollInputIntoView}
               onCompositionStart={() => { composingRef.current = true; }}
               onCompositionEnd={(e) => {
                 composingRef.current = false;
