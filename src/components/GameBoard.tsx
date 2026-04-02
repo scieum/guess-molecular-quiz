@@ -46,23 +46,45 @@ export default function GameBoard({
   onFailRef.current = onFail;
   onCorrectRef.current = onCorrect;
 
-  // Track visual viewport height for mobile keyboard
+  // Track visual viewport height for mobile keyboard (especially iOS)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const updateHeight = () => {
-      const vh = window.visualViewport?.height ?? window.innerHeight;
-      container.style.height = `${vh}px`;
+    const vv = window.visualViewport;
+
+    // Prevent body scroll when keyboard is open (iOS)
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+
+    const updateLayout = () => {
+      if (vv) {
+        container.style.height = `${vv.height}px`;
+        container.style.top = `${vv.offsetTop}px`;
+      } else {
+        container.style.height = `${window.innerHeight}px`;
+        container.style.top = '0px';
+      }
     };
 
-    updateHeight();
-    window.visualViewport?.addEventListener('resize', updateHeight);
-    window.addEventListener('resize', updateHeight);
+    updateLayout();
+
+    if (vv) {
+      vv.addEventListener('resize', updateLayout);
+      vv.addEventListener('scroll', updateLayout);
+    }
+    window.addEventListener('resize', updateLayout);
 
     return () => {
-      window.visualViewport?.removeEventListener('resize', updateHeight);
-      window.removeEventListener('resize', updateHeight);
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      if (vv) {
+        vv.removeEventListener('resize', updateLayout);
+        vv.removeEventListener('scroll', updateLayout);
+      }
+      window.removeEventListener('resize', updateLayout);
     };
   }, []);
 
@@ -146,7 +168,7 @@ export default function GameBoard({
   const activeHints = molecule.hints[currentStage];
 
   return (
-    <div ref={containerRef} className="h-dvh flex flex-col overflow-hidden">
+    <div ref={containerRef} className="fixed inset-x-0 top-0 flex flex-col overflow-hidden" style={{ height: '100dvh' }}>
       {/* Top bar — fixed height */}
       <div className="shrink-0 z-20 bg-white/95 backdrop-blur-sm border-b border-[#e5e5e5]">
         <div className="max-w-2xl mx-auto px-4 py-3">
