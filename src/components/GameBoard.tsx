@@ -9,6 +9,7 @@ interface GameBoardProps {
   totalScore: number;
   onCorrect: (points: number, stage: number) => void;
   onFail: () => void;
+  onQuit: () => void;
 }
 
 const STAGE_COLORS = [
@@ -24,6 +25,7 @@ export default function GameBoard({
   totalScore,
   onCorrect,
   onFail,
+  onQuit,
 }: GameBoardProps) {
   const [currentStage, setCurrentStage] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
@@ -174,6 +176,13 @@ export default function GameBoard({
         <div className="max-w-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
+              <button
+                onClick={onQuit}
+                className="text-[#a3a3a3] hover:text-[#171717] transition-colors"
+                aria-label="나가기"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
               <span className="text-sm font-medium text-[#171717]">
                 #{moleculeIndex + 1}
               </span>
