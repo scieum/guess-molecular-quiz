@@ -40,10 +40,31 @@ export default function GameBoard({
   const composingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Keep callback refs fresh
   onFailRef.current = onFail;
   onCorrectRef.current = onCorrect;
+
+  // Track visual viewport height for mobile keyboard
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateHeight = () => {
+      const vh = window.visualViewport?.height ?? window.innerHeight;
+      container.style.height = `${vh}px`;
+    };
+
+    updateHeight();
+    window.visualViewport?.addEventListener('resize', updateHeight);
+    window.addEventListener('resize', updateHeight);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updateHeight);
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, []);
 
   // Single timer effect — only restarts when molecule changes
   useEffect(() => {
@@ -125,7 +146,7 @@ export default function GameBoard({
   const activeHints = molecule.hints[currentStage];
 
   return (
-    <div className="h-dvh flex flex-col overflow-hidden">
+    <div ref={containerRef} className="h-dvh flex flex-col overflow-hidden">
       {/* Top bar — fixed height */}
       <div className="shrink-0 z-20 bg-white/95 backdrop-blur-sm border-b border-[#e5e5e5]">
         <div className="max-w-2xl mx-auto px-4 py-3">
