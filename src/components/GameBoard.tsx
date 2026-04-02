@@ -110,11 +110,12 @@ export default function GameBoard({
     }
   };
 
-  const scrollInputIntoView = () => {
+  // Auto-scroll to show the active hint when stage changes
+  useEffect(() => {
     setTimeout(() => {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, 300);
-  };
+    }, 100);
+  }, [currentStage]);
 
   const timerPercent = (timeLeft / TIME_LIMIT) * 100;
   const timerColor =
@@ -124,9 +125,9 @@ export default function GameBoard({
   const activeHints = molecule.hints[currentStage];
 
   return (
-    <div className="min-h-dvh">
-      {/* Top bar */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-[#e5e5e5]">
+    <div className="h-dvh flex flex-col overflow-hidden">
+      {/* Top bar — fixed height */}
+      <div className="shrink-0 z-20 bg-white/95 backdrop-blur-sm border-b border-[#e5e5e5]">
         <div className="max-w-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
@@ -161,45 +162,40 @@ export default function GameBoard({
         </div>
       </div>
 
-      {/* Previous hint cards (stages before current) */}
-      {currentStage > 0 && (
-        <div className="px-4 py-2">
-          <div className="max-w-2xl mx-auto space-y-1.5">
-            {molecule.hints.map((stageHints, stageIdx) => {
-              if (stageIdx >= currentStage) return null;
-              const colors = STAGE_COLORS[stageIdx];
+      {/* Hints area — scrollable, takes remaining space */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-2">
+        <div className="max-w-2xl mx-auto space-y-1.5">
+          {/* Previous hint cards */}
+          {molecule.hints.map((stageHints, stageIdx) => {
+            if (stageIdx >= currentStage) return null;
+            const colors = STAGE_COLORS[stageIdx];
 
-              return (
-                <div
-                  key={stageIdx}
-                  className={`rounded-lg border px-3 py-2 opacity-60 ${colors.bg} ${colors.border}`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[10px] font-bold text-white px-1.5 py-px rounded-full ${colors.badge}`}>
-                      {stageIdx + 1}단계
-                    </span>
-                  </div>
-                  <ul className="space-y-0.5">
-                    {stageHints.map((hint, hintIdx) => (
-                      <li key={hintIdx} className={`text-sm font-light ${colors.text} flex items-start gap-1.5`}>
-                        <span className="shrink-0">💡</span>
-                        <span>{hint}</span>
-                      </li>
-                    ))}
-                  </ul>
+            return (
+              <div
+                key={stageIdx}
+                className={`rounded-lg border px-3 py-2 opacity-60 ${colors.bg} ${colors.border}`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-[10px] font-bold text-white px-1.5 py-px rounded-full ${colors.badge}`}>
+                    {stageIdx + 1}단계
+                  </span>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+                <ul className="space-y-0.5">
+                  {stageHints.map((hint, hintIdx) => (
+                    <li key={hintIdx} className={`text-sm font-light ${colors.text} flex items-start gap-1.5`}>
+                      <span className="shrink-0">💡</span>
+                      <span>{hint}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
 
-      {/* Current hint + Input — grouped together so both stay visible on mobile keyboard */}
-      <div ref={bottomRef} className="px-4 pb-6 pt-2">
-        <div className="max-w-2xl mx-auto">
           {/* Active hint card */}
           <div
-            className={`rounded-lg border px-3 py-2 mb-3 animate-slide-up ring-2 ring-offset-1 ring-[#6366F1]/30 ${activeColors.bg} ${activeColors.border}`}
+            ref={bottomRef}
+            className={`rounded-lg border px-3 py-2 animate-slide-up ring-2 ring-offset-1 ring-[#6366F1]/30 ${activeColors.bg} ${activeColors.border}`}
           >
             <div className="flex items-center gap-2 mb-1">
               <span className={`text-[10px] font-bold text-white px-1.5 py-px rounded-full ${activeColors.badge}`}>
@@ -218,8 +214,12 @@ export default function GameBoard({
               ))}
             </ul>
           </div>
+        </div>
+      </div>
 
-          {/* Input area */}
+      {/* Input area — fixed at bottom, never scrolls away */}
+      <div className="shrink-0 z-20 bg-white border-t border-[#e5e5e5] px-4 py-3">
+        <div className="max-w-2xl mx-auto">
           {feedback === 'wrong' && (
             <p className="text-xs text-red-500 font-medium mb-2 animate-fade-in text-center">
               틀렸습니다! 다시 시도해보세요.
@@ -231,7 +231,6 @@ export default function GameBoard({
               type="text"
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              onFocus={scrollInputIntoView}
               onCompositionStart={() => { composingRef.current = true; }}
               onCompositionEnd={(e) => {
                 composingRef.current = false;
