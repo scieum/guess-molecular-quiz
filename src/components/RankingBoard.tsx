@@ -37,7 +37,7 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/rankings?limit=10')
+    fetch('/api/rankings?limit=20')
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) setRankings(data);
@@ -51,7 +51,7 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
         {/* Header */}
         <div className="text-center mb-1 pt-2">
           <h2 className="text-2xl font-bold text-[#171717]">랭킹 보드</h2>
-          <p className="text-sm text-[#a3a3a3] font-light mt-1">상위 10명의 기록</p>
+          <p className="text-sm text-[#a3a3a3] font-light mt-1">상위 20명의 기록</p>
         </div>
 
         {/* Ranking list */}
