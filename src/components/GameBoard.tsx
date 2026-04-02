@@ -12,11 +12,13 @@ interface GameBoardProps {
 }
 
 const STAGE_COLORS = [
-  { bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-500', text: 'text-red-700' },
-  { bg: 'bg-orange-50', border: 'border-orange-200', badge: 'bg-orange-500', text: 'text-orange-700' },
-  { bg: 'bg-yellow-50', border: 'border-yellow-200', badge: 'bg-yellow-600', text: 'text-yellow-700' },
-  { bg: 'bg-green-50', border: 'border-green-200', badge: 'bg-green-500', text: 'text-green-700' },
+  { bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-gradient-to-r from-red-500 to-red-600', text: 'text-red-700', ring: 'ring-red-300' },
+  { bg: 'bg-orange-50', border: 'border-orange-200', badge: 'bg-gradient-to-r from-orange-500 to-orange-600', text: 'text-orange-700', ring: 'ring-orange-300' },
+  { bg: 'bg-yellow-50', border: 'border-yellow-200', badge: 'bg-gradient-to-r from-yellow-500 to-yellow-600', text: 'text-yellow-700', ring: 'ring-yellow-300' },
+  { bg: 'bg-green-50', border: 'border-green-200', badge: 'bg-gradient-to-r from-green-500 to-green-600', text: 'text-green-700', ring: 'ring-green-300' },
 ];
+
+const STAGE_DOTS = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400'];
 
 export default function GameBoard({
   molecule,
@@ -31,7 +33,6 @@ export default function GameBoard({
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [frozen, setFrozen] = useState(false);
 
-  // All mutable game state in refs to avoid effect dependency issues
   const stageRef = useRef(0);
   const frozenRef = useRef(false);
   const timeRef = useRef(TIME_LIMIT);
@@ -41,13 +42,10 @@ export default function GameBoard({
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Keep callback refs fresh
   onFailRef.current = onFail;
   onCorrectRef.current = onCorrect;
 
-  // Single timer effect — only restarts when molecule changes
   useEffect(() => {
-    // Reset everything for new molecule
     stageRef.current = 0;
     frozenRef.current = false;
     timeRef.current = TIME_LIMIT;
@@ -124,44 +122,57 @@ export default function GameBoard({
   const activeHints = molecule.hints[currentStage];
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-dvh bg-[#f8fafc]">
       {/* Top bar */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-[#e5e5e5]">
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-[#e5e7eb] shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-[#171717]">
+              <span className="text-sm font-bold text-[#171717] bg-[#f1f5f9] px-2.5 py-0.5 rounded-lg">
                 #{moleculeIndex + 1}
               </span>
-              <span className="text-xs text-[#a3a3a3]">
-                {currentStage + 1}단계 · {STAGE_POINTS[currentStage]}점
-              </span>
+              {/* Stage dots */}
+              <div className="flex items-center gap-1.5">
+                {[0, 1, 2, 3].map((s) => (
+                  <div
+                    key={s}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      s < currentStage
+                        ? `${STAGE_DOTS[s]} opacity-40`
+                        : s === currentStage
+                        ? `${STAGE_DOTS[s]} scale-125`
+                        : 'bg-gray-200'
+                    }`}
+                  />
+                ))}
+                <span className="text-xs text-[#a3a3a3] ml-1">
+                  {STAGE_POINTS[currentStage]}점
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[#a3a3a3]">총점</span>
+            <div className="flex items-center gap-1.5 bg-indigo-50 px-3 py-1 rounded-lg">
+              <span className="text-[10px] text-indigo-400 font-medium">총점</span>
               <span className="text-lg font-bold text-[#6366F1]">{totalScore}</span>
             </div>
           </div>
 
           {!frozen && (
-            <>
-              <div className="h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden">
+            <div className="relative">
+              <div className="h-2 bg-[#f0f0f0] rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-1000 ease-linear ${timerColor}`}
                   style={{ width: `${timerPercent}%` }}
                 />
               </div>
-              <div className="text-right mt-1">
-                <span className={`text-xs font-mono font-medium ${timeLeft <= 3 ? 'text-red-500' : 'text-[#a3a3a3]'}`}>
-                  {timeLeft}초
-                </span>
-              </div>
-            </>
+              <span className={`absolute right-0 -top-0.5 text-[10px] font-mono font-bold ${timeLeft <= 3 ? 'text-red-500' : 'text-[#a3a3a3]'}`}>
+                {timeLeft}s
+              </span>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Previous hint cards (stages before current) */}
+      {/* Previous hint cards */}
       {currentStage > 0 && (
         <div className="px-4 py-2">
           <div className="max-w-2xl mx-auto space-y-1.5">
@@ -172,17 +183,17 @@ export default function GameBoard({
               return (
                 <div
                   key={stageIdx}
-                  className={`rounded-lg border px-3 py-2 opacity-60 ${colors.bg} ${colors.border}`}
+                  className={`rounded-xl border px-3 py-2 opacity-50 ${colors.bg} ${colors.border}`}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[10px] font-bold text-white px-1.5 py-px rounded-full ${colors.badge}`}>
+                    <span className={`text-[10px] font-bold text-white px-2 py-0.5 rounded-full ${colors.badge}`}>
                       {stageIdx + 1}단계
                     </span>
                   </div>
                   <ul className="space-y-0.5">
                     {stageHints.map((hint, hintIdx) => (
                       <li key={hintIdx} className={`text-sm font-light ${colors.text} flex items-start gap-1.5`}>
-                        <span className="shrink-0">💡</span>
+                        <span className="shrink-0 text-xs mt-0.5">&#10148;</span>
                         <span>{hint}</span>
                       </li>
                     ))}
@@ -194,25 +205,25 @@ export default function GameBoard({
         </div>
       )}
 
-      {/* Current hint + Input — grouped together so both stay visible on mobile keyboard */}
+      {/* Current hint + Input */}
       <div ref={bottomRef} className="px-4 pb-6 pt-2">
         <div className="max-w-2xl mx-auto">
           {/* Active hint card */}
           <div
-            className={`rounded-lg border px-3 py-2 mb-3 animate-slide-up ring-2 ring-offset-1 ring-[#6366F1]/30 ${activeColors.bg} ${activeColors.border}`}
+            className={`rounded-xl border-2 px-4 py-3 mb-3 animate-slide-up shadow-sm ${activeColors.bg} ${activeColors.border}`}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <span className={`text-[10px] font-bold text-white px-1.5 py-px rounded-full ${activeColors.badge}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`text-[10px] font-bold text-white px-2 py-0.5 rounded-full ${activeColors.badge}`}>
                 {currentStage + 1}단계
               </span>
-              <span className="text-[10px] text-[#a3a3a3]">
+              <span className="text-[10px] text-[#a3a3a3] font-medium">
                 {STAGE_POINTS[currentStage]}점
               </span>
             </div>
-            <ul className="space-y-0.5">
+            <ul className="space-y-1">
               {activeHints.map((hint, hintIdx) => (
-                <li key={hintIdx} className={`text-sm font-light ${activeColors.text} flex items-start gap-1.5`}>
-                  <span className="shrink-0">💡</span>
+                <li key={hintIdx} className={`text-sm font-light ${activeColors.text} flex items-start gap-2`}>
+                  <span className="shrink-0 text-xs mt-0.5">&#10148;</span>
                   <span>{hint}</span>
                 </li>
               ))}
@@ -239,13 +250,13 @@ export default function GameBoard({
               }}
               placeholder="분자식 또는 이름 (예: H2O, 물)"
               disabled={frozen}
-              className="flex-1 px-4 py-3 rounded-xl border border-[#e5e5e5] text-base font-light placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1] disabled:opacity-50"
+              className="flex-1 px-4 py-3 rounded-xl bg-white border border-[#e5e5e5] text-base font-light placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1] disabled:opacity-50 shadow-sm"
               autoComplete="off"
             />
             <button
               type="submit"
               disabled={!answer.trim() || frozen}
-              className="px-5 py-3 rounded-xl bg-[#6366F1] text-white text-sm font-medium transition-all hover:bg-[#4F46E5] active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+              className="px-5 py-3 rounded-xl btn-primary text-white text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none shrink-0"
             >
               제출
             </button>
@@ -254,9 +265,9 @@ export default function GameBoard({
           {currentStage < 3 && !frozen && (
             <button
               onClick={handleNextHint}
-              className="w-full mt-2 py-2.5 rounded-xl border border-[#e5e5e5] text-sm text-[#737373] font-light transition-all hover:bg-[#f9f9f9] hover:border-[#d4d4d4] active:scale-[0.99]"
+              className="w-full mt-2 py-2.5 rounded-xl bg-white border border-[#e5e5e5] text-sm text-[#737373] font-light transition-all hover:bg-[#f9f9f9] hover:border-[#d4d4d4] hover:shadow-sm active:scale-[0.99] shadow-sm"
             >
-              추가 힌트 보기 →
+              추가 힌트 보기 &#8594;
             </button>
           )}
         </div>
@@ -264,13 +275,15 @@ export default function GameBoard({
 
       {/* Correct overlay */}
       {feedback === 'correct' && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/20 animate-fade-in">
-          <div className="bg-white rounded-2xl p-8 text-center shadow-2xl animate-bounce-in">
-            <div className="text-4xl mb-3">🎉</div>
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/30 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-8 text-center shadow-2xl animate-bounce-in mx-4">
+            <div className="text-5xl mb-3">&#127881;</div>
             <p className="text-xl font-bold text-[#171717] mb-1">정답!</p>
-            <p className="text-2xl font-bold text-[#6366F1]">{molecule.formula}</p>
-            <p className="text-sm text-[#525252] mt-1">{molecule.nameKorean}</p>
-            <p className="text-lg font-bold text-green-600 mt-3">+{STAGE_POINTS[currentStage]}점</p>
+            <p className="text-3xl font-bold text-[#6366F1] my-2">{molecule.formula}</p>
+            <p className="text-sm text-[#525252]">{molecule.nameKorean}</p>
+            <div className="mt-4 inline-block bg-green-50 px-4 py-1.5 rounded-full">
+              <span className="text-lg font-bold text-green-600">+{STAGE_POINTS[currentStage]}점</span>
+            </div>
           </div>
         </div>
       )}

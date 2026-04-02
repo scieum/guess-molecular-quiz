@@ -69,7 +69,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-dvh bg-white">
+    <div className="min-h-dvh bg-[#f8fafc]">
       {phase === 'landing' && (
         <Landing onStart={handleStart} onShowRanking={() => setPhase('ranking')} />
       )}

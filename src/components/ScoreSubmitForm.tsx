@@ -66,58 +66,58 @@ export default function ScoreSubmitForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl bg-[#f9f9f9] p-5 space-y-4">
-      <h3 className="text-sm font-semibold text-[#171717]">랭킹 등록</h3>
+    <form onSubmit={handleSubmit} className="rounded-2xl bg-white/80 backdrop-blur-sm border border-white/60 shadow-sm p-5 space-y-4">
+      <h3 className="text-sm font-bold text-[#171717]">랭킹 등록</h3>
 
       {/* Stats summary */}
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="bg-white rounded-lg py-2">
+        <div className="bg-indigo-50 rounded-xl py-2.5">
           <span className="text-lg font-bold text-[#6366F1]">{totalScore}</span>
-          <span className="text-[10px] text-[#a3a3a3] block">총점</span>
+          <span className="text-[10px] text-indigo-400 font-medium block">총점</span>
         </div>
-        <div className="bg-white rounded-lg py-2">
+        <div className="bg-[#f8fafc] rounded-xl py-2.5 border border-[#f0f0f0]">
           <span className="text-lg font-bold text-[#171717]">{roundReached}</span>
-          <span className="text-[10px] text-[#a3a3a3] block">라운드</span>
+          <span className="text-[10px] text-[#a3a3a3] font-medium block">라운드</span>
         </div>
-        <div className="bg-white rounded-lg py-2">
+        <div className="bg-red-50 rounded-xl py-2.5">
           <span className="text-lg font-bold text-red-500">{perfectCount}</span>
-          <span className="text-[10px] text-[#a3a3a3] block">10점</span>
+          <span className="text-[10px] text-red-400 font-medium block">10점</span>
         </div>
       </div>
 
       {/* Nickname */}
       <div>
-        <label className="text-xs text-[#737373] font-medium block mb-1">닉네임</label>
+        <label className="text-xs text-[#737373] font-semibold block mb-1.5">닉네임</label>
         <input
           type="text"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           placeholder="닉네임 입력 (최대 20자)"
           maxLength={20}
-          className="w-full px-3 py-2.5 rounded-xl border border-[#e5e5e5] text-base font-light placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1]"
+          className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#e5e5e5] text-base font-light placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/30 focus:border-[#6366F1] shadow-sm"
         />
       </div>
 
       {/* School */}
       <div>
-        <label className="text-xs text-[#737373] font-medium block mb-1">소속교</label>
+        <label className="text-xs text-[#737373] font-semibold block mb-1.5">소속교</label>
         <SchoolSearch onSelect={setSchool} />
       </div>
 
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
 
       <div className="flex gap-2">
         <button
           type="button"
           onClick={onSkip}
-          className="flex-1 py-3 rounded-xl border border-[#e5e5e5] text-sm text-[#737373] font-light transition-all hover:bg-white active:scale-[0.98]"
+          className="flex-1 py-3 rounded-xl bg-white border border-[#e5e5e5] text-sm text-[#737373] font-light transition-all hover:bg-[#f9f9f9] hover:shadow-sm active:scale-[0.98]"
         >
           건너뛰기
         </button>
         <button
           type="submit"
           disabled={!canSubmit}
-          className="flex-1 py-3 rounded-xl bg-[#6366F1] text-white text-sm font-medium transition-all hover:bg-[#4F46E5] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex-1 py-3 rounded-xl btn-primary text-white text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {submitting ? '등록 중...' : '랭킹 등록'}
         </button>

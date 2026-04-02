@@ -38,18 +38,21 @@ export default function GameOver({
   }
 
   return (
-    <div className="min-h-dvh flex flex-col py-6 px-4">
+    <div className="min-h-dvh flex flex-col py-6 px-4 bg-[#f8fafc]">
       <div className="max-w-lg w-full mx-auto flex-1 flex flex-col justify-center animate-slide-up">
         {/* Result Header */}
         <div className="text-center mb-5">
-          <div className="text-5xl mb-3">
-            {isPerfectClear ? '🏆' : totalScore >= 30 ? '🏆' : totalScore >= 15 ? '🧪' : '🔬'}
+          <div className="text-6xl mb-3">
+            {isPerfectClear ? '\u{1F3C6}' : totalScore >= 30 ? '\u{1F3C6}' : totalScore >= 15 ? '\u{1F9EA}' : '\u{1F52C}'}
           </div>
-          <h2 className="text-xl font-semibold text-[#171717] mb-1">
+          <h2 className="text-xl font-bold text-[#171717] mb-1">
             {isPerfectClear ? '완벽한 클리어!' : '게임 종료!'}
           </h2>
-          <div className="text-5xl font-bold text-[#6366F1] my-3">
-            {totalScore}<span className="text-xl font-medium text-[#a3a3a3] ml-1">점</span>
+          <div className="my-4">
+            <span className="text-6xl font-bold bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
+              {totalScore}
+            </span>
+            <span className="text-xl font-medium text-[#a3a3a3] ml-1">점</span>
           </div>
           <p className="text-sm text-[#525252] font-light">
             {isPerfectClear ? '모든 분자를 맞추셨습니다!' : `${correctCount}개의 분자를 맞추셨습니다`}
@@ -58,8 +61,8 @@ export default function GameOver({
 
         {/* Failed molecule reveal */}
         {failedMolecule && (
-          <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-4 mb-4 text-center">
-            <p className="text-xs text-red-400 font-medium mb-1">마지막 정답</p>
+          <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-4 mb-4 text-center shadow-sm">
+            <p className="text-[10px] text-red-400 font-semibold uppercase tracking-wider mb-1">마지막 정답</p>
             <p className="text-2xl font-bold text-red-600">{failedMolecule.formula}</p>
             <p className="text-sm text-red-500">{failedMolecule.nameKorean} ({failedMolecule.nameEnglish})</p>
           </div>
@@ -67,23 +70,23 @@ export default function GameOver({
 
         {/* Answer history */}
         {answers.length > 0 && (
-          <div className="rounded-2xl bg-[#f9f9f9] p-4 mb-4">
-            <h3 className="text-xs font-medium text-[#a3a3a3] mb-3">맞춘 분자들</h3>
-            <div className="space-y-2">
+          <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-white/60 shadow-sm p-4 mb-4">
+            <h3 className="text-xs font-semibold text-[#a3a3a3] mb-3 uppercase tracking-wider">맞춘 분자들</h3>
+            <div className="space-y-1.5">
               {answers
                 .filter((a) => a.points > 0)
                 .map((a, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between py-2 px-3 rounded-lg bg-white"
+                    className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-[#f8fafc] border border-[#f0f0f0]"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-[#a3a3a3] w-5">#{idx + 1}</span>
-                      <span className="font-medium text-sm text-[#171717]">{a.molecule.formula}</span>
+                      <span className="text-[10px] text-white bg-[#6366F1] w-5 h-5 rounded-full flex items-center justify-center font-bold">{idx + 1}</span>
+                      <span className="font-semibold text-sm text-[#171717]">{a.molecule.formula}</span>
                       <span className="text-xs text-[#737373]">{a.molecule.nameKorean}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-[#a3a3a3]">{a.stage + 1}단계</span>
+                      <span className="text-[10px] text-[#a3a3a3] bg-[#f0f0f0] px-1.5 py-0.5 rounded">{a.stage + 1}단계</span>
                       <span className="text-sm font-bold text-green-600">+{a.points}</span>
                     </div>
                   </div>

@@ -18,7 +18,8 @@ interface RankingBoardProps {
   onRestart: () => void;
 }
 
-const MEDAL_EMOJIS = ['🥇', '🥈', '🥉'];
+const MEDAL_EMOJIS = ['\u{1F947}', '\u{1F948}', '\u{1F949}'];
+const MEDAL_BG = ['bg-amber-50 border-amber-200', 'bg-gray-50 border-gray-200', 'bg-orange-50 border-orange-200'];
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -49,23 +50,23 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
   }, []);
 
   return (
-    <div className="min-h-dvh flex flex-col py-6 px-4">
+    <div className="min-h-dvh flex flex-col py-6 px-4 bg-[#f8fafc]">
       <div className="max-w-lg w-full mx-auto flex-1 flex flex-col animate-slide-up">
         {/* Header */}
-        <div className="text-center mb-1 pt-2">
+        <div className="text-center mb-4 pt-2">
           <h2 className="text-2xl font-bold text-[#171717]">랭킹 보드</h2>
           <p className="text-sm text-[#a3a3a3] font-light mt-1">상위 50명의 기록</p>
         </div>
 
         {/* Ranking list */}
-        <div className="flex-1 overflow-y-auto py-4 space-y-2.5">
+        <div className="flex-1 overflow-y-auto py-2 space-y-2">
           {loading ? (
             Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-20 bg-[#f5f5f5] rounded-2xl animate-pulse" />
+              <div key={i} className="h-20 bg-white rounded-2xl animate-pulse border border-[#f0f0f0]" />
             ))
           ) : rankings.length === 0 ? (
             <div className="text-center py-16">
-              <div className="text-4xl mb-3">🏅</div>
+              <div className="text-5xl mb-3">{'\u{1F3C5}'}</div>
               <p className="text-sm text-[#a3a3a3]">아직 등록된 기록이 없습니다</p>
             </div>
           ) : (
@@ -79,10 +80,10 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
                   key={entry.id}
                   className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all ${
                     isHighlighted
-                      ? 'bg-[#EEF2FF] border-2 border-[#6366F1]/40 shadow-sm'
+                      ? 'bg-indigo-50 border-2 border-[#6366F1]/40 shadow-md animate-pulse-ring'
                       : isTop3
-                      ? 'bg-white border border-[#e5e5e5] shadow-sm'
-                      : 'bg-white border border-[#f0f0f0]'
+                      ? `${MEDAL_BG[idx]} border shadow-sm`
+                      : 'bg-white border border-[#f0f0f0] hover:shadow-sm hover:border-[#e5e5e5]'
                   }`}
                 >
                   {/* Rank */}
@@ -90,7 +91,7 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
                     {medal ? (
                       <span className="text-2xl">{medal}</span>
                     ) : (
-                      <span className="text-sm font-bold text-[#a3a3a3]">{idx + 1}</span>
+                      <span className="text-sm font-bold text-[#c0c0c0] bg-[#f5f5f5] w-8 h-8 rounded-full flex items-center justify-center">{idx + 1}</span>
                     )}
                   </div>
 
@@ -101,23 +102,23 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
                         {entry.nickname}
                       </span>
                       {entry.perfect_count > 0 && (
-                        <span className="shrink-0 text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full">
+                        <span className="shrink-0 text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full border border-red-100">
                           10p x{entry.perfect_count}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="text-xs text-[#a3a3a3] truncate">{entry.school_name}</span>
-                      <span className="text-[10px] text-[#d4d4d4]">·</span>
+                      <span className="text-[10px] text-[#d4d4d4]">&middot;</span>
                       <span className="text-xs text-[#a3a3a3]">R{entry.round_reached}</span>
-                      <span className="text-[10px] text-[#d4d4d4]">·</span>
+                      <span className="text-[10px] text-[#d4d4d4]">&middot;</span>
                       <span className="text-xs text-[#a3a3a3] shrink-0">{formatDate(entry.created_at)}</span>
                     </div>
                   </div>
 
                   {/* Score */}
                   <div className="shrink-0 text-right">
-                    <span className={`text-xl font-bold ${isHighlighted ? 'text-[#6366F1]' : 'text-[#6366F1]'}`}>
+                    <span className="text-xl font-bold text-[#6366F1]">
                       {entry.total_score.toLocaleString()}
                     </span>
                   </div>
@@ -128,10 +129,10 @@ export default function RankingBoard({ highlightId, onRestart }: RankingBoardPro
         </div>
 
         {/* Bottom button */}
-        <div className="pt-2 pb-2">
+        <div className="pt-3 pb-2">
           <button
             onClick={onRestart}
-            className="w-full py-4 rounded-2xl bg-[#6366F1] text-white font-medium text-lg transition-all hover:bg-[#4F46E5] hover:shadow-lg active:scale-[0.98]"
+            className="w-full py-4 rounded-2xl btn-primary text-white font-semibold text-lg"
           >
             닫기
           </button>
