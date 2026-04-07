@@ -27,7 +27,7 @@ export default function Home() {
   const currentMolecule = useMemo(() => queue[currentIdx] ?? null, [queue, currentIdx]);
 
   const handleStart = useCallback(() => {
-    const shuffled = shuffle(molecules).slice(0, 20);
+    const shuffled = shuffle(molecules);
     setQueue(shuffled);
     setCurrentIdx(0);
     setTotalScore(0);
